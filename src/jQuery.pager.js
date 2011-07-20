@@ -76,13 +76,13 @@
             pager = $(createPager()).appendTo(context);
             
             //Attaching click events
-            attachEventsToPager(pager);
+            attachEventsToPager(pager);                        
             
-            //Createing the custom control
-            if ((typeof(settings.custom_control) === 'object') && (settings.custom_control.length))  {
-              createCustomControl();
-            }
-            
+          }
+          
+          //Creating the custom control
+          if ((typeof(settings.custom_control) === 'object') && (settings.custom_control.length))  {
+            createCustomControl();
           }
           
       }
@@ -124,8 +124,9 @@
       function createPager() {
         var pager = '';
         for (var i = 0; i<slices.length; i++) {
-          var j = i+1;
-          pager += '<a href="#pager-'+j+'">'+j+'</a>';
+          var j = i+1, active = (i===0)?'class="active"':'';
+          
+          pager += '<a '+active+' href="#pager-'+j+'">'+j+'</a>';
         }
         return '<div class="pager">'+pager+'</div>';
       }
