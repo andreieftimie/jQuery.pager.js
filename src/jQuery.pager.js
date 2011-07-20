@@ -13,17 +13,21 @@
 
     var settings = {
       items_per_page: 1,
-      items: '>*'
+      items: '>*',
+      custom_control: false,
+      custom_control_label: 'Items per page'
     };
     
     var method;
-    
-    if (arguments.length >= 2) {
+
+    if (typeof(arguments[0]) === 'string') {
        method = arguments[0];
-       options = arguments[1]; 
+      if (typeof(arguments[1]) === 'object') {
+        options = arguments[1]; 
+      }
     } else {
       options = arguments[0];
-    }    
+    }  
     
     if (options) { 
       $.extend(settings, options);
@@ -33,39 +37,68 @@
       
       var
         context = this, //the wrapper element
-        items = $(options.items, this), //all items
+        items = $(settings.items, context), //all items
         slices, //each slice
-        pager; //actual pager containing links to each slice
+        pager, //actual pager containing links to each slice
+        customControl; //the custom control element
       
-      //Initialise the plugin
-      init();
       
+      if (method === 'update') {  //Update method      
+        //We do a destroy, followed by a new init
+        destroy();
+        init();
+        
+      } else if (method === 'destroy') { //Destroy method
+        destroy();
+      }
+      
+      else { //We assume instantiation
+            
+        //Initialise the plugin
+        init();
+        
+      }
       
       /*
        * Init
        */
-      function init() {
-      
-        if (method) {} //Apply the method. Not used in v0.1 - probably with a switch statement
-        else { //We assume instantiation
-        
-          if ((options.items_per_page > 1) && (options.items_per_page <= items.length)) {
+      function init() {                    
+          
+          //reassign items
+          items = $(settings.items, context);
+          
+          if ((settings.items_per_page > 1) && (settings.items_per_page <= items.length)) {
             
             //We slice all items into chunks based on how many items per page we want to show
             createSlices();                                 
             
+            //Creating the pager links
+            pager = $(createPager()).appendTo(context);
+            
+            //Attaching click events
+            attachEventsToPager(pager);
+            
+            //Createing the custom control
+            if ((typeof(settings.custom_control) === 'object') && (settings.custom_control.length))  {
+              createCustomControl();
+            }
+            
           }
           
-        }
-        
-        //Creating the pager links
-        pager = $(createPager()).appendTo(context);
-        
-        //Attaching click events
-        attachEventsToPager(pager);
-        
       }
+                        
       
+      /*
+       * Returns the content to its pristine form
+       */
+      function destroy(){
+        //Unwrap slices
+        $(context).find('.slice').find(settings.items).unwrap();
+        //Remove pager
+        $('.pager', context).remove();
+        //Remove Custom Controls
+        $('.custom-control', context).remove();
+      }
       
       /*
        * Creating Slices
@@ -73,9 +106,10 @@
       function createSlices() {
         //Create slices          
         var start = 0, end = 0;
+        
         do {
           start = end;
-          end = end + options.items_per_page;
+          end = end + settings.items_per_page;
           items.slice(start, end).wrapAll('<div class="slice" />');            
         } while (end <= items.length);
         
@@ -88,12 +122,12 @@
        * Creating the Pager
        */
       function createPager() {
-        var pager;
+        var pager = '';
         for (var i = 0; i<slices.length; i++) {
           var j = i+1;
           pager += '<a href="#pager-'+j+'">'+j+'</a>';
         }
-        return pager;
+        return '<div class="pager">'+pager+'</div>';
       }
       
       /*
@@ -102,9 +136,37 @@
       function attachEventsToPager(){
         pager.click(function(e){
           newSlice = parseInt(e.target.href.split('#')[1].split('-')[1]) - 1;
-          slices.hide().eq(newSlice).show(); 
+          slices.hide().eq(newSlice).show();
+          $('a', pager).removeClass('active').eq(newSlice).addClass('active');
           return false;
         });        
+      }
+      
+      /*
+       * Create the Control for custom number of items per page
+       */
+      function createCustomControl(){
+        var selector = '<div class="custom-control"><label>'+settings.custom_control_label+'</label><select class="custom-control">';
+        $.each(settings.custom_control, function(){
+          var selected = (settings.items_per_page == this)?' selected ':'';
+          selector += '<option '+selected+' value="'+this+'">'+this+'</option>';
+        });
+        selector += '</select></div>';        
+        $(context).append(selector);
+        customControl = $('.custom-control', context);
+        
+        attachControlEvents();
+      }
+      
+      /*
+       * Attach Events for the custom control
+       */
+      function attachControlEvents(){
+        var newSettings = settings;        
+        customControl.bind('change', function(){
+          newSettings.items_per_page = parseInt($('select', customControl).val());
+          $(context).pager('update', newSettings);
+        });
       }
 
     });

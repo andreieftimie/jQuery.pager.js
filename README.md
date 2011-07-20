@@ -20,6 +20,8 @@ $('#container').pager('update', {
   items_per_page: 10
 });
 
+$('#container').pager('destroy');
+
 ## On future versions
 $('#container').pager('show_page', 4); //Shows the 4th page
 $('#container').pager('show_item', 14); //Shows the page where item 14 lives. Same page if (items_per_page === 1)

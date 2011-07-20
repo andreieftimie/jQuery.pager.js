@@ -5,6 +5,8 @@
     
     <script src="src/jQuery.js"></script>
     <script src="src/jQuery.pager.js"></script>
+    <script src="src/jQuery.cookie.js"></script>
+    
   </head>
   <body>
     
@@ -27,7 +29,8 @@
           jQuery(function($){
             $('#demo-1').pager({
               items_per_page: 6,
-              items: '.item'
+              items: '.item',
+              custom_control: [3,6,9]
             });
           });
         </script>
@@ -35,9 +38,10 @@
 <pre><code>
   
   $('#demo-1').pager({
-    items_per_page: 6
-  });
-  
+    items_per_page: 6,
+    items: '.item',
+    custom_control: [3,6,9]
+  });  
 </code></pre>
         
         <div id="demo-1">
